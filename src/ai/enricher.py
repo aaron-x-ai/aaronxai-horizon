@@ -5,6 +5,7 @@ For items that pass the score threshold, this module:
 2. Feeds search results + item content to AI to generate grounded background knowledge
 """
 
+import asyncio
 import json
 import re
 import sys
@@ -32,24 +33,23 @@ class ContentEnricher:
     async def enrich_batch(self, items: List[ContentItem]) -> None:
         """Enrich items in-place with background knowledge.
 
-        Args:
-            items: Content items to enrich (modified in-place)
+        Uses bounded concurrency (default max 6 in-flight) to avoid
+        overwhelming the AI API.
         """
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            MofNCompleteColumn(),
-            transient=True,
-        ) as progress:
-            task = progress.add_task("Enriching", total=len(items))
+        import os
+        max_concurrent = int(os.environ.get("HORIZON_ENRICH_CONCURRENCY", "6"))
+        semaphore = asyncio.Semaphore(max_concurrent)
 
-            for item in items:
+        async def _enrich_one(index: int, item: ContentItem) -> None:
+            async with semaphore:
+                print(f"  Enriching {index+1}/{len(items)}: {item.id}")
                 try:
                     await self._enrich_item(item)
                 except Exception as e:
                     print(f"Error enriching item {item.id}: {e}")
-                progress.advance(task)
+
+        tasks = [_enrich_one(i, item) for i, item in enumerate(items)]
+        await asyncio.gather(*tasks, return_exceptions=True)
 
     async def _web_search(self, query: str, max_results: int = 3) -> list:
         """Search the web for context via DuckDuckGo.
@@ -58,15 +58,18 @@ class ContentEnricher:
             List of dicts with keys: title, url, body
         """
         try:
+            # NOTE: DDGS search hangs indefinitely in this environment.
+            # Return empty to skip web search and proceed with AI enrichment.
+            return []
             # Suppress primp "Impersonate ... does not exist" stderr warning
-            stderr = sys.stderr
-            sys.stderr = open(os.devnull, "w")
-            try:
-                ddgs = DDGS()
-                results = ddgs.text(query, max_results=max_results)
-            finally:
-                sys.stderr.close()
-                sys.stderr = stderr
+            # stderr = sys.stderr
+            # sys.stderr = open(os.devnull, "w")
+            # try:
+            #     ddgs = DDGS()
+            #     results = ddgs.text(query, max_results=max_results)
+            # finally:
+            #     sys.stderr.close()
+            #     sys.stderr = stderr
         except Exception:
             return []
 

@@ -533,8 +533,11 @@ class WebhookNotifier:
                 )
 
         except Exception as e:
+            import traceback
             self.console.print(f"[red]Webhook call failed! Exception: {e}[/red]")
+            self.console.print(f"[red]Traceback: {traceback.format_exc()}[/red]")
             logger.error("Webhook call failed! URL: %s, exception: %s", request_url, e)
+            logger.error("Traceback: %s", traceback.format_exc())
 
     async def send_daily_summary(
         self,

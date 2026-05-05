@@ -2,8 +2,8 @@
   "version": "1.0",
   "ai": {
     "provider": "openai",
-    "model": "deepseek-v4-pro",
-    "base_url": "https://api.deepseek.com",
+    "model": "moonshot-v1-128k",
+    "base_url": "https://api.moonshot.cn/v1",
     "api_key_env": "OPENAI_API_KEY",
     "temperature": 0.3,
     "max_tokens": 8192,
@@ -36,53 +36,79 @@
         "owner": "triton-lang",
         "repo": "triton",
         "enabled": true
+      },
+      {
+        "type": "repo_releases",
+        "owner": "ollama",
+        "repo": "ollama",
+        "enabled": true
+      },
+      {
+        "type": "repo_releases",
+        "owner": "huggingface",
+        "repo": "transformers",
+        "enabled": true
+      },
+      {
+        "type": "repo_releases",
+        "owner": "langchain-ai",
+        "repo": "langchain",
+        "enabled": true
+      },
+      {
+        "type": "repo_releases",
+        "owner": "meta-llama",
+        "repo": "llama-models",
+        "enabled": true
+      },
+      {
+        "type": "repo_releases",
+        "owner": "commaai",
+        "repo": "openpilot",
+        "enabled": true
       }
     ],
     "hackernews": {
       "enabled": true,
       "fetch_top_stories": 30,
-      "min_score": 150
+      "min_score": 100
     },
     "rss": [
       {
-        "name": "Simon Willison",
-        "url": "https://simonwillison.net/atom/everything/",
+        "name": "Google AI Blog",
+        "url": "https://blog.google/technology/ai/rss/",
         "enabled": true,
-        "category": "ai-tools"
+        "category": "ai-official"
+      },
+      {
+        "name": "The Verge",
+        "url": "https://www.theverge.com/rss/index.xml",
+        "enabled": true,
+        "category": "tech-news"
+      },
+      {
+        "name": "36氪",
+        "url": "https://www.36kr.com/feed",
+        "enabled": true,
+        "category": "china-tech",
+        "fetch_limit": 5
+      },
+      {
+        "name": "阮一峰的网络日志",
+        "url": "http://www.ruanyifeng.com/blog/atom.xml",
+        "enabled": true,
+        "category": "tech-weekly"
       },
       {
         "name": "GitHub Trending - Daily",
         "url": "https://mshibanami.github.io/GitHubTrendingRSS/daily/all.xml",
         "enabled": true,
         "category": "github-trending"
-      },
-      {
-        "name": "LWN.net",
-        "url": "https://lwn.net/headlines/full_text?key=${LWN_KEY}",
-        "enabled": true,
-        "category": "linux-kernel"
       }
     ],
     "reddit": {
-      "enabled": true,
-      "subreddits": [
-        {
-          "subreddit": "MachineLearning",
-          "enabled": true,
-          "sort": "hot",
-          "time_filter": "day",
-          "fetch_limit": 15,
-          "min_score": 60
-        },
-        {
-          "subreddit": "LocalLLaMA",
-          "enabled": true,
-          "sort": "hot",
-          "time_filter": "day",
-          "fetch_limit": 15,
-          "min_score": 60
-        }
-      ],
+      "enabled": false,
+      "subreddits": [],
       "users": [],
       "fetch_comments": 10
     },
@@ -99,8 +125,7 @@
     "twitter": {
       "enabled": true,
       "users": [
-        "karpathy",
-        "roifex"
+        "karpathy"
       ],
       "fetch_limit": 10,
       "fetch_reply_text": false,

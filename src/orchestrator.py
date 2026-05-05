@@ -129,6 +129,23 @@ class HorizonOrchestrator:
                 summary_path = self.storage.save_daily_summary(today, summary, language=lang)
                 self.console.print(f"💾 Saved {lang.upper()} summary to: {summary_path}\n")
 
+                # Also copy to user's work directory for easy access
+                try:
+                    from pathlib import Path
+                    import shutil
+
+                    work_dir = Path("/Users/mac/Desktop/hermes-work/horizon")
+                    work_dir.mkdir(parents=True, exist_ok=True)
+
+                    now_str = datetime.now().strftime("%Y%m%d-%H%M")
+                    work_filename = f"horizon-tech_{now_str}_{lang}.md"
+                    work_path = work_dir / work_filename
+
+                    shutil.copy2(summary_path, work_path)
+                    self.console.print(f"📂 Copied {lang.upper()} summary to work dir: {work_path}\n")
+                except Exception as e:
+                    self.console.print(f"[yellow]⚠️  Failed to copy to work dir: {e}[/yellow]\n")
+
                 # Copy to docs/ for GitHub Pages
                 try:
                     from pathlib import Path

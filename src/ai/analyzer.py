@@ -36,33 +36,43 @@ class ContentAnalyzer:
         return max(throttle_sec, 0.0)
 
     async def analyze_batch(self, items: List[ContentItem]) -> List[ContentItem]:
+        """Analyze content items concurrently with bounded parallelism.
+
+        Uses a semaphore to avoid overwhelming the AI API with too many
+        concurrent requests (default max 8 in-flight at once).
+        """
+        import os
+        max_concurrent = int(os.environ.get("HORIZON_ANALYZE_CONCURRENCY", "8"))
+        semaphore = asyncio.Semaphore(max_concurrent)
         throttle_sec = self._get_throttle_sec()
-        analyzed_items = []
 
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            MofNCompleteColumn(),
-            transient=True,
-        ) as progress:
-            task = progress.add_task("Analyzing", total=len(items))
-
-            for index, item in enumerate(items):
+        async def _analyze_one(index: int, item: ContentItem) -> ContentItem:
+            async with semaphore:
+                print(f"  Analyzing {index+1}/{len(items)}: {item.id}")
                 try:
                     await self._analyze_item(item)
-                    analyzed_items.append(item)
                 except Exception as e:
                     print(f"Error analyzing item {item.id}: {e}")
                     item.ai_score = 0.0
                     item.ai_reason = "Analysis failed"
                     item.ai_summary = item.title
-                    analyzed_items.append(item)
-                progress.advance(task)
                 if throttle_sec > 0 and index < len(items) - 1:
                     await asyncio.sleep(throttle_sec)
+                return item
 
-        return analyzed_items
+        tasks = [_analyze_one(i, item) for i, item in enumerate(items)]
+        analyzed_items = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Unwrap results (exceptions were already handled inside _analyze_one,
+        # but gather could still return exceptions if _analyze_one itself raised)
+        results = []
+        for item in analyzed_items:
+            if isinstance(item, Exception):
+                # This shouldn't happen because _analyze_one catches internally,
+                # but guard against it anyway
+                continue
+            results.append(item)
+        return results
 
     @retry(
         stop=stop_after_attempt(3),
