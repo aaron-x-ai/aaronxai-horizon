@@ -3,7 +3,7 @@
 > **Fork 声明**：本项目 fork 自 [Thysrael/Horizon](https://github.com/Thysrael/Horizon)，原项目采用 [MIT 许可证](LICENSE)。<br>
 > 此版本由 [Aaron](https://github.com/aaron-x-ai) 维护，用于个人 AI 信息聚合与品牌工作流（aaronxai-horizon）。
 
-# 🌅 Horizon
+# 🌅 aaronxai-horizon
 
 **Enjoy the News itself. Leave others to Horizon**
 
